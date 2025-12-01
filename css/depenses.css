@@ -1,0 +1,67 @@
+.page-header h1 {
+    font-size: 32px;
+    margin: 0;
+    color: #fff;
+}
+
+.page-header p {
+    margin-top: 4px;
+    color: rgba(255, 255, 255, 0.55);
+}
+
+.actions {
+    display: flex;
+    gap: 12px;
+    margin: 20px 0;
+}
+
+.actions input,
+.actions select {
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    color: #cfead6;
+}
+
+.table-wrapper {
+    background: var(--card);
+    border-radius: 14px;
+    padding: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.table td:last-child {
+    display: flex;
+    gap: 10px;
+}
+
+.action-btn {
+    cursor: pointer;
+    color: var(--accent);
+    padding: 4px 6px;
+}
+
+.action-btn.delete {
+    color: #ff4d4d;
+}
+
+.pagination {
+    margin-top: 16px;
+    display: flex;
+    gap: 6px;
+}
+
+.page-number {
+    padding: 8px 12px;
+    background: rgba(255, 255, 255, 0.04);
+    border-radius: 6px;
+    color: #fff;
+    cursor: pointer;
+}
+
+.page-number.active {
+    background: var(--accent);
+    color: #06120a;
+    font-weight: bold;
+}

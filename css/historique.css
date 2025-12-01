@@ -1,0 +1,64 @@
+.page-header h1 {
+    font-size: 32px;
+    color: #fff;
+}
+
+.page-header p {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.actions {
+    margin: 20px 0;
+    display: flex;
+    gap: 12px;
+}
+
+.actions input,
+.actions select {
+    padding: 12px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    color: var(--muted);
+}
+
+.table-wrapper {
+    padding: 14px;
+    border-radius: 14px;
+    background: var(--card);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.action-btn {
+    cursor: pointer;
+    font-size: 18px;
+    margin-right: 8px;
+}
+
+.delete {
+    color: #ff4d4d;
+}
+
+.edit {
+    color: var(--accent);
+}
+
+.pagination {
+    display: flex;
+    gap: 6px;
+    margin-top: 18px;
+}
+
+.page-number {
+    padding: 8px 12px;
+    background: rgba(255, 255, 255, 0.06);
+    border-radius: 6px;
+    cursor: pointer;
+    color: white;
+}
+
+.page-number.active {
+    background: var(--accent);
+    color: black;
+    font-weight: bold;
+}

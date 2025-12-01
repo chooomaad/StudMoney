@@ -1,0 +1,43 @@
+.param-card {
+    background: var(--card);
+    padding: 30px;
+    border-radius: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    width: 420px;
+}
+
+label {
+    display: block;
+    margin-top: 20px;
+    margin-bottom: 6px;
+    color: var(--muted);
+}
+
+input[type=number],
+input[type=range] {
+    width: 100%;
+    padding: 12px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #fff;
+}
+
+.range-value {
+    margin-top: 4px;
+    font-size: 18px;
+    color: var(--accent);
+    font-weight: bold;
+}
+
+.btn-save {
+    margin-top: 20px;
+    width: 100%;
+    padding: 14px;
+    background: var(--accent);
+    color: #06120a;
+    border: none;
+    border-radius: 10px;
+    font-weight: bold;
+    cursor: pointer;
+}

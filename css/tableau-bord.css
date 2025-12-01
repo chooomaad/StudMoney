@@ -1,0 +1,17 @@
+/* Overrides & refinements pour le dashboard */
+.chart-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 320px
+}
+
+.recent {
+    max-height: 320px;
+    overflow: auto
+}
+
+.table tbody tr:hover {
+    background: rgba(255, 255, 255, 0.01)
+}
