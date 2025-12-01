@@ -18,7 +18,7 @@
         <!-- Sidebar -->
         <aside class="sidebar">
             <div class="brand">
-                <img src="assets/logo.svg" alt="logo" class="logo">
+                <img src="assets/logo.png" alt="logo" class="logo">
                 <span>StudMoney</span>
             </div>
 
@@ -51,19 +51,29 @@
             </header>
 
             <section class="grid">
-                <div class="card stat">
-                    <div class="label">Dépensé aujourd'hui</div>
-                    <div id="todayAmount" class="amount">0€</div>
-                </div>
+            <div class="card stat">
+                <div class="label">Solde disponible</div>
+                <div id="balanceAmount" class="amount">0 F CFA</div>
+            </div>
+            
+            <div class="card stat">
+                <div class="label">Dépensé aujourd'hui</div>
+                <div id="todayAmount" class="amount">0 F CFA</div>
+            </div>
+            
+            <div class="card stat">
+                <div class="label">Cette semaine</div>
+                <div id="weekAmount" class="amount">0 F CFA</div>
+            </div>
+            
+            <div class="card stat">
+                <div class="label">Ce mois-ci</div>
+                <div id="monthAmount" class="amount">0 F CFA</div>
+            </div>
 
                 <div class="card chart-card">
                     <div class="card-title">Répartition par catégorie</div>
                     <canvas id="doughnutChart" width="400" height="300"></canvas>
-                </div>
-
-                <div class="card stat">
-                    <div class="label">Cette semaine</div>
-                    <div id="weekAmount" class="amount">0€</div>
                 </div>
 
                 <div class="card recent">
@@ -81,17 +91,12 @@
                     </table>
                 </div>
 
-                <div class="card stat">
-                    <div class="label">Ce mois-ci</div>
-                    <div id="monthAmount" class="amount">0€</div>
-                </div>
-
                 <div class="card budget">
                     <div class="card-title">Budget mensuel</div>
                     <div class="progress-bar">
                         <div id="progressFill" class="fill" style="width:0%"></div>
                     </div>
-                    <div class="budget-info"><span id="spentText">0€</span> de <span id="budgetText">1000€</span></div>
+                    <div class="budget-info"><span id="spentText">0FCFA</span> de <span id="budgetText">1000€</span></div>
                 </div>
             </section>
         </main>
@@ -108,7 +113,6 @@
                     <label>Montant (FCFA) *</label>
                     <input id="amount" type="number" step="0.01" min="0.01" placeholder="0.00" required />
                 </div>
-
                 <div class="form-row">
                     <label>Catégorie *</label>
                     <select id="category" required>

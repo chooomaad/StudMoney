@@ -1,3 +1,7 @@
+if (localStorage.getItem("loggedIn") !== "true") {
+   window.location = "connexion.html";
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   ensureSeed();
   initExpensesPage();

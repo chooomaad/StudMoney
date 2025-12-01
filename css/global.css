@@ -324,6 +324,24 @@ body {
     display: none !important;
 }
 
+.logout {
+    text-decoration: none;
+    color: #ff6b6b;
+    font-weight: 600;
+    padding: 10px 14px;
+    border: 1px solid rgba(255, 80, 80, 0.25);
+    border-radius: 10px;
+    display: inline-block;
+    margin-top: 10px;
+    transition: 0.25s;
+}
+
+.logout:hover {
+    background: rgba(255, 80, 80, 0.15);
+    border-color: rgba(255, 80, 80, 0.4);
+    transform: scale(1.03);
+}
+
 /* --- SELECT CUSTOM --- */
 
 .form-row select {

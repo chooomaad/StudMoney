@@ -1,3 +1,7 @@
+if (localStorage.getItem("loggedIn") !== "true") {
+   window.location = "connexion.html";
+}
+
 // tableau-bord.js — logique du dashboard + modal + chart
 document.addEventListener('DOMContentLoaded', () => {
   ensureSeed();
@@ -89,6 +93,8 @@ function updateDashboard(){
   // budget progress
   const budget = readBudget();
   const spent = monthSum;
+  const balance = budget.amount - spent;
+  document.getElementById('balanceAmount').textContent = formatCurrency(balance);
   const pct = Math.min(100, Math.round((spent / (budget.amount || 1)) * 100));
   document.getElementById('progressFill').style.width = pct + '%';
   document.getElementById('spentText').textContent = formatCurrency(spent);
@@ -119,6 +125,8 @@ function renderRecent(items){
     tbody.appendChild(tr);
   });
 }
+
+
 
 function renderChart(catMap){
   const ctx = document.getElementById('doughnutChart').getContext('2d');
