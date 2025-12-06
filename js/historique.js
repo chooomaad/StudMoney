@@ -1,86 +1,343 @@
-if (localStorage.getItem("loggedIn") !== "true") {
-   window.location = "connexion.html";
+if (localStorage.getItem("connecte") !== "true") {
+    window.location = "connexion.html";
 }
+
+
+const etatFiltres = {
+    recherche: "",
+    categorie: "",
+    date: "",
+    tri: "date-desc"
+};
+
+let depensesAffichees = [];
+let pageActuelle = 1;
+const elementsParPage = 8;
 
 
 document.addEventListener("DOMContentLoaded", () => {
-  ensureSeed();
-  initHistory();
-  loadHistory();
+    initialiserDonnees();
+    initialiserInterface();
+    afficherTableau();
 });
 
-let currentPage = 1;
-const perPage = 10;
 
-function initHistory(){
-  document.getElementById("search").oninput = loadHistory;
-  document.getElementById("filterCategory").onchange = loadHistory;
-  document.getElementById("filterDate").onchange = loadHistory;
-  document.getElementById("sort").onchange = loadHistory;
+function initialiserInterface() {
+
+    document.getElementById("recherche").addEventListener("input", (e) => {
+        etatFiltres.recherche = e.target.value.toLowerCase();
+        pageActuelle = 1;
+        afficherTableau();
+    });
+
+    document.getElementById("filtre-categorie").addEventListener("change", (e) => {
+        etatFiltres.categorie = e.target.value;
+        pageActuelle = 1;
+        afficherTableau();
+    });
+
+    document.getElementById("filtre-date").addEventListener("change", (e) => {
+        etatFiltres.date = e.target.value;
+        pageActuelle = 1;
+        afficherTableau();
+    });
+
+    document.getElementById("tri").addEventListener("change", (e) => {
+        etatFiltres.tri = e.target.value;
+        pageActuelle = 1;
+        afficherTableau();
+    });
 }
 
-function filteredList(){
-  let list = readExpenses();
 
-  const search = document.getElementById("search").value.toLowerCase();
-  const cat = document.getElementById("filterCategory").value;
-  const d = document.getElementById("filterDate").value;
-  const sort = document.getElementById("sort").value;
+function obtenirDepensesFiltrees() {
+    let toutesDepenses = lireDepenses();
+    
+    if (!toutesDepenses || toutesDepenses.length === 0) {
+        return [];
+    }
 
-  list = list.filter(e =>
-    (search === "" || e.title.toLowerCase().includes(search)) &&
-    (cat === "" || e.category === cat) &&
-    (d === "" || e.date === d)
-  );
+    let filtered = toutesDepenses.filter(dep => {
+        const correspondRech = 
+            dep.titre.toLowerCase().includes(etatFiltres.recherche) ||
+            (dep.description && dep.description.toLowerCase().includes(etatFiltres.recherche));
 
-  if(sort === "date-desc") list.sort((a,b)=> new Date(b.date)-new Date(a.date));
-  if(sort === "date-asc")  list.sort((a,b)=> new Date(a.date)-new Date(b.date));
-  if(sort === "amount-desc") list.sort((a,b)=> b.amount - a.amount);
-  if(sort === "amount-asc")  list.sort((a,b)=> a.amount - b.amount);
+        if (!correspondRech && etatFiltres.recherche) return false;
 
-  return list;
+        if (etatFiltres.categorie && dep.categorie !== etatFiltres.categorie) {
+            return false;
+        }
+
+        if (etatFiltres.date) {
+            const dateDepense = dep.date.split("T")[0];
+            if (dateDepense !== etatFiltres.date) {
+                return false;
+            }
+        }
+
+        return true;
+    });
+
+    filtered.sort((a, b) => {
+        switch (etatFiltres.tri) {
+            case "date-asc":
+                return new Date(a.date) - new Date(b.date);
+            case "date-desc":
+                return new Date(b.date) - new Date(a.date);
+            case "montant-asc":
+                return a.montant - b.montant;
+            case "montant-desc":
+                return b.montant - a.montant;
+            default:
+                return 0;
+        }
+    });
+
+    return filtered;
 }
 
-function loadHistory(){
-  const list = filteredList();
-  const tbody = document.querySelector("#historyTable tbody");
-  tbody.innerHTML = "";
 
-  const totalPages = Math.ceil(list.length / perPage);
-  const pageData = list.slice((currentPage-1)*perPage, currentPage*perPage);
+function afficherTableau() {
+    depensesAffichees = obtenirDepensesFiltrees();
+    
+    const tbody = document.querySelector("#table-historique tbody");
+    tbody.innerHTML = "";
 
-  pageData.forEach(e=>{
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${formatDisplayDate(e.date)}</td>
-      <td>${e.category}</td>
-      <td>${escapeHtml(e.title)}</td>
-      <td>${formatCurrency(e.amount)}</td>
-      <td>
-        <span class="action-btn edit">✏️</span>
-        <span class="action-btn delete" onclick="deleteExp('${e.id}')">🗑️</span>
-      </td>`;
-    tbody.appendChild(tr);
-  });
+    if (depensesAffichees.length === 0) {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `<td colspan="5" style="text-align: center; padding: 20px; color: rgba(255,255,255,0.5);">Aucune dépense trouvée</td>`;
+        tbody.appendChild(tr);
+        afficherPagination();
+        return;
+    }
 
-  renderPagination(totalPages);
+    const debut = (pageActuelle - 1) * elementsParPage;
+    const fin = debut + elementsParPage;
+    const depensesPage = depensesAffichees.slice(debut, fin);
+
+    depensesPage.forEach(dep => {
+        const tr = document.createElement("tr");
+        const badgeClass = obtenirClasseCategorie(dep.categorie);
+        tr.innerHTML = `
+            <td>${dateLisible(dep.date)}</td>
+            <td><span class="badge-categorie ${badgeClass}">${escapeHtml(dep.categorie)}</span></td>
+            <td>
+                <div class="desc-cell">
+                    <strong>${escapeHtml(dep.titre)}</strong>
+                    ${dep.description ? `<br><small>${escapeHtml(dep.description)}</small>` : ""}
+                </div>
+            </td>
+            <td class="montant-cell">${formatCurrency(dep.montant)}</td>
+            <td class="actions-cell">
+                <button class="action-modifier" onclick="modifierDepense('${dep.id}')">Modifier</button>
+                <button class="action-supprimer" onclick="supprimerDepense('${dep.id}')">Supprimer</button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+
+    afficherPagination();
 }
 
-function deleteExp(id){
-  const list = readExpenses().filter(e=>e.id !== id);
-  saveExpenses(list);
-  loadHistory();
+
+function afficherPagination() {
+    const paginationDiv = document.getElementById("pagination");
+    paginationDiv.innerHTML = "";
+
+    const totalPages = Math.ceil(depensesAffichees.length / elementsParPage);
+
+    if (totalPages <= 1) return;
+
+    for (let i = 1; i <= totalPages; i++) {
+        const btn = document.createElement("button");
+        btn.className = `page-numero ${i === pageActuelle ? "active" : ""}`;
+        btn.textContent = i;
+        btn.addEventListener("click", () => {
+            pageActuelle = i;
+            afficherTableau();
+        });
+        paginationDiv.appendChild(btn);
+    }
 }
 
-function renderPagination(totalPages){
-  const pag = document.getElementById("pagination");
-  pag.innerHTML = "";
 
-  for(let i=1; i<=totalPages; i++){
-    const div = document.createElement("div");
-    div.className = "page-number " + (i===currentPage?"active":"");
-    div.textContent = i;
-    div.onclick = ()=>{ currentPage=i; loadHistory(); };
-    pag.appendChild(div);
-  }
+function supprimerDepense(id) {
+    if (!confirm("Êtes-vous sûr de vouloir supprimer cette dépense ?")) {
+        return;
+    }
+
+    let depenses = lireDepenses() || [];
+    depenses = depenses.filter(dep => dep.id !== id);
+    enregistrerDepenses(depenses);
+
+    pageActuelle = 1;
+    afficherTableau();
+
+    alert("Dépense supprimée avec succès !");
+}
+
+
+function modifierDepense(id) {
+    let depenses = lireDepenses() || [];
+    const depense = depenses.find(dep => dep.id === id);
+
+    if (!depense) {
+        alert("Dépense introuvable.");
+        return;
+    }
+
+    const modale = document.createElement("div");
+    modale.id = "modal-modifier-depense";
+    modale.className = "modal-overlay";
+    modale.innerHTML = `
+        <div class="modal-contenu">
+            <div class="modal-entete">
+                <h2>Modifier une dépense</h2>
+                <button class="modal-fermer" aria-label="Fermer">&times;</button>
+            </div>
+
+            <form id="form-modifier-depense">
+                <div class="groupe-input">
+                    <label for="mod-titre">Titre *</label>
+                    <input type="text" id="mod-titre" value="${escapeHtml(depense.titre)}" required>
+                </div>
+
+                <div class="groupe-input">
+                    <label for="mod-description">Description</label>
+                    <textarea id="mod-description" rows="3">${escapeHtml(depense.description || "")}</textarea>
+                </div>
+
+                <div class="groupe-input">
+                    <label for="mod-categorie">Catégorie *</label>
+                    <select id="mod-categorie" required>
+                        <option value="Alimentation" ${depense.categorie === "Alimentation" ? "selected" : ""}>Alimentation</option>
+                        <option value="Transport" ${depense.categorie === "Transport" ? "selected" : ""}>Transport</option>
+                        <option value="Logement" ${depense.categorie === "Logement" ? "selected" : ""}>Logement</option>
+                        <option value="Loisirs" ${depense.categorie === "Loisirs" ? "selected" : ""}>Loisirs</option>
+                        <option value="Autre" ${depense.categorie === "Autre" ? "selected" : ""}>Autre</option>
+                    </select>
+                </div>
+
+                <div class="groupe-input">
+                    <label for="mod-montant">Montant (FCFA) *</label>
+                    <input type="number" id="mod-montant" value="${depense.montant}" required min="1">
+                </div>
+
+                <div class="groupe-input">
+                    <label for="mod-date">Date *</label>
+                    <input type="date" id="mod-date" value="${depense.date}" required>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn-annuler">Annuler</button>
+                    <button type="submit" class="btn-valider">Enregistrer</button>
+                </div>
+            </form>
+        </div>
+    `;
+
+    document.body.appendChild(modale);
+
+    modale.querySelector(".modal-fermer").addEventListener("click", () => {
+        modale.remove();
+    });
+
+    modale.querySelector(".btn-annuler").addEventListener("click", () => {
+        modale.remove();
+    });
+
+    modale.addEventListener("click", (e) => {
+        if (e.target === modale) {
+            modale.remove();
+        }
+    });
+
+    modale.querySelector("#form-modifier-depense").addEventListener("submit", (e) => {
+        e.preventDefault();
+        enregistrerModification(id);
+        modale.remove();
+    });
+
+    modale.style.display = "flex";
+}
+
+
+function enregistrerModification(id) {
+    const titre = document.getElementById("mod-titre").value.trim();
+    const description = document.getElementById("mod-description").value.trim();
+    const categorie = document.getElementById("mod-categorie").value;
+    const montant = parseFloat(document.getElementById("mod-montant").value);
+    const date = document.getElementById("mod-date").value;
+
+    if (!titre || !categorie || !montant || !date) {
+        alert("Veuillez remplir tous les champs obligatoires.");
+        return;
+    }
+
+    if (montant <= 0) {
+        alert("Le montant doit être positif.");
+        return;
+    }
+
+    let depenses = lireDepenses() || [];
+    const index = depenses.findIndex(dep => dep.id === id);
+
+    if (index !== -1) {
+        depenses[index] = {
+            id: id,
+            titre: titre,
+            description: description,
+            categorie: categorie,
+            montant: montant,
+            date: date
+        };
+    }
+
+    enregistrerDepenses(depenses);
+    pageActuelle = 1;
+    afficherTableau();
+
+    alert("Dépense modifiée avec succès !");
+}
+
+
+function formatCurrency(montant) {
+    return new Intl.NumberFormat("fr-FR", {
+        style: "currency",
+        currency: "XOF",
+        maximumFractionDigits: 0
+    }).format(montant || 0);
+}
+
+function escapeHtml(str) {
+    const map = {
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#039;"
+    };
+    return String(str || "").replace(/[&<>"']/g, m => map[m]);
+}
+
+function obtenirClasseCategorie(categorie) {
+    const classes = {
+        "Alimentation": "badge-alimentation",
+        "Transport": "badge-transport",
+        "Logement": "badge-logement",
+        "Loisirs": "badge-loisirs",
+        "Autre": "badge-autre"
+    };
+    return classes[categorie] || "badge-autre";
+}
+
+function obtenirCouleurCategorie(categorie) {
+    const couleurs = {
+        'Alimentation': '#2ecc71',
+        'Transport': '#1abc9c',
+        'Logement': '#3498db',
+        'Loisirs': '#9b59b6',
+        'Autre': '#e67e22'
+    };
+    return couleurs[categorie] || '#95a5a6';
 }

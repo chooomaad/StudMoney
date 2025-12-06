@@ -1,60 +1,80 @@
-// app.js — fonctions globales (LocalStorage, utilitaires)
-const STORAGE_KEY = 'gb_expenses_v1';
-const STORAGE_BUDGET = 'gb_budget_v1';
+const CLE_DEPENSES = "donnees_depenses";
+const CLE_BUDGET = "donnees_budget";
 
-const CATEGORIES = ['Alimentation','Transport','Logement','Loisirs','Autre'];
+const CATEGORIES = ["Alimentation", "Transport", "Logement", "Loisirs", "Autre"];
 
-function readExpenses(){
-  const raw = localStorage.getItem(STORAGE_KEY);
-  return raw ? JSON.parse(raw) : null;
+
+function lireDepenses() {
+    const brut = localStorage.getItem(CLE_DEPENSES);
+    return brut ? JSON.parse(brut) : null;
 }
 
-function saveExpenses(list){
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+function enregistrerDepenses(liste) {
+    localStorage.setItem(CLE_DEPENSES, JSON.stringify(liste));
 }
 
-function readBudget(){
-  const raw = localStorage.getItem(STORAGE_BUDGET);
-  return raw ? JSON.parse(raw) : { amount:50000, period:'monthly', threshold:85 };
+function lireBudget() {
+    const brut = localStorage.getItem(CLE_BUDGET);
+    return brut ? JSON.parse(brut) : { montant: 50000, seuil: 85 };
 }
 
-function saveBudget(b){
-  localStorage.setItem(STORAGE_BUDGET, JSON.stringify(b));
+function enregistrerBudget(budget) {
+    localStorage.setItem(CLE_BUDGET, JSON.stringify(budget));
 }
 
-// si pas de données => seed
-function ensureSeed(){
-  if(!readExpenses()){
-    const now = new Date();
-    const sample = [
-      {id:cryptoRandomId(),title:'Café',category:'Alimentation',date:formatDateISO(now),amount:5.00,desc:'Café campus'},
-      {id:cryptoRandomId(),title:'Bus',category:'Transport',date:formatDateISO(now),amount:2.5,desc:'Bus retour'},
-      {id:cryptoRandomId(),title:'Livre',category:'Autre',date:formatDateISO(addDays(now,-1)),amount:45.00,desc:'Manuel cours'}
-    ];
-    saveExpenses(sample);
-  }
-  if(!localStorage.getItem(STORAGE_BUDGET)){
-    saveBudget({ amount:1000, period:'monthly', threshold:85 });
-  }
+function initialiserDonnees(){
+    if (!lireDepenses()) {
+        const maintenant = new Date();
+
+        const exemples = [
+            {
+                id: idAleatoire(),
+                titre: "Café",
+                categorie: "Alimentation",
+                date: dateISO(maintenant),
+                montant: 500,
+                description: "Café campus"
+            },
+            {
+                id: idAleatoire(),
+                titre: "Bus",
+                categorie: "Transport",
+                date: dateISO(maintenant),
+                montant: 300,
+                description: "Trajet retour"
+            },
+            {
+                id: idAleatoire(),
+                titre: "Livre",
+                categorie: "Autre",
+                date: dateISO(ajouterJours(maintenant, -1)),
+                montant: 4500,
+                description: "Manuel de cours"
+            }
+        ];
+
+        enregistrerDepenses(exemples);
+    }
+
+    if (!localStorage.getItem(CLE_BUDGET)) {
+        enregistrerBudget({ montant: 1000, seuil: 85 });
+    }
 }
 
-function cryptoRandomId(){
-  return Math.random().toString(36).slice(2,9);
+function idAleatoire() {
+    return Math.random().toString(36).slice(2, 9);
 }
 
-function formatDateISO(d){
-  const date = new Date(d);
-  return date.toISOString().slice(0,10);
+function dateISO(date) {
+    return new Date(date).toISOString().slice(0, 10);
 }
 
-// parse ISO to readable
-function formatDisplayDate(iso){
-  const d = new Date(iso);
-  return d.toLocaleDateString();
+function dateLisible(iso) {
+    return new Date(iso).toLocaleDateString();
 }
 
-function addDays(date, days){
-  const d = new Date(date);
-  d.setDate(d.getDate()+days);
-  return d;
+function ajouterJours(date, nb) {
+    const d = new Date(date);
+    d.setDate(d.getDate() + nb);
+    return d;
 }

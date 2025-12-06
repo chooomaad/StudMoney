@@ -1,38 +1,49 @@
-// Enregistrer un utilisateur
 document.addEventListener("DOMContentLoaded", () => {
 
-  const registerForm = document.getElementById("registerForm");
-  if (registerForm) {
-    registerForm.onsubmit = (e) => {
-      e.preventDefault();
+    const formInscription = document.getElementById("form-inscription");
 
-      const user = {
-        name: name.value,
-        email: email.value,
-        password: password.value
-      };
+    if (formInscription) {
 
-      localStorage.setItem("studUser", JSON.stringify(user));
-      alert("Compte créé !");
-      window.location = "login.html";
-    };
-  }
+        formInscription.addEventListener("submit", (e) => {
+            e.preventDefault();
 
-  // Login
-  const loginForm = document.getElementById("loginForm");
-  if (loginForm) {
-    loginForm.onsubmit = (e) => {
-      e.preventDefault();
+            const utilisateur = {
+                nom: document.getElementById("champ-nom").value,
+                email: document.getElementById("champ-email").value,
+                mdp: document.getElementById("champ-mdp").value
+            };
 
-      const user = JSON.parse(localStorage.getItem("studUser") || "{}");
+            localStorage.setItem("utilisateur", JSON.stringify(utilisateur));
 
-      if (email.value === user.email && password.value === user.password) {
-        localStorage.setItem("loggedIn", "true");
-        window.location = "index.html";
-      } else {
-        alert("Email ou mot de passe incorrect");
-      }
-    };
-  }
+            alert("Compte créé avec succès !");
+            window.location = "connexion.html";
+        });
+    }
+
+
+    const formConnexion = document.getElementById("form-connexion");
+
+    if (formConnexion) {
+
+        formConnexion.addEventListener("submit", (e) => {
+            e.preventDefault();
+
+            const utilisateur = JSON.parse(localStorage.getItem("utilisateur") || "{}");
+
+            const email = document.getElementById("champ-email").value;
+            const mdp = document.getElementById("champ-mdp").value;
+
+            if (email === utilisateur.email && mdp === utilisateur.mdp) {
+
+                localStorage.setItem("connecte", "true");
+
+                window.location = "index.html";
+
+            } else {
+                alert("Email ou mot de passe incorrect.");
+            }
+
+        });
+    }
 
 });

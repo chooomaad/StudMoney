@@ -2,83 +2,84 @@
 <html lang="fr">
 
 <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Tableau de bord</title>
 
-    <link rel="stylesheet" href="css/global.css" />
-    <link rel="stylesheet" href="css/tableau-bord.css" />
-
-    <!-- Chart.js CDN -->
+    <link rel="stylesheet" href="css/global.css">
+    <link rel="stylesheet" href="css/tableau-bord.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
 <body>
+
     <div class="app">
-        <!-- Sidebar -->
-        <aside class="sidebar">
-            <div class="brand">
+
+        <aside class="menu">
+            <div class="marque">
                 <img src="assets/logo.png" alt="logo" class="logo">
                 <span>StudMoney</span>
             </div>
 
-            <nav class="nav">
-                <a class="nav-item active" href="index.html">Tableau de bord</a>
-                <a class="nav-item" href="depenses.html">Dépenses</a>
-                <a class="nav-item" href="historique.html">Historique</a>
-                <a class="nav-item" href="parametres.html">Paramètres</a>
+            <nav class="navigation">
+                <a class="item-menu actif" href="index.html">Tableau de bord</a>
+                <a class="item-menu" href="depenses.html">Dépenses</a>
+                <a class="item-menu" href="historique.html">Historique</a>
+                <a class="item-menu" href="parametres.html">Paramètres</a>
             </nav>
 
-            <button id="openAdd" class="btn-add">+ Ajouter dépense</button>
+            <button id="ouvrir-ajout" class="btn-ajout">+ Ajouter dépense</button>
 
-            <div class="side-bottom">
-                <div class="user">
-                    <img src="assets/utilisateur.png" alt="user" />
+            <div class="bloc-bas">
+                <div class="utilisateur">
+                    <img src="assets/utilisateur.png" alt="user">
                     <div>
-                        <div class="name">Choumad Elemine</div>
-                        <div class="email">Choumad@univ.edu.sn</div>
+                        <div class="nom">Choumad Elemine</div>
+                        <div class="email">choumad@ugb.edu.sn</div>
                     </div>
                 </div>
-                <a class="logout" href="#">Déconnexion</a>
+
+                <a class="deconnexion">Déconnexion</a>
             </div>
         </aside>
 
-        <!-- Main -->
-        <main class="main">
-            <header class="header">
-                <h1>Bienvenue, Choumad!</h1>
+        <main class="contenu">
+
+            <header class="entete">
+                <h1>Bienvenue, Choumad !</h1>
                 <p>Voici un aperçu de vos finances. Continuez comme ça !</p>
             </header>
 
-            <section class="grid">
-            <div class="card stat">
-                <div class="label">Solde disponible</div>
-                <div id="balanceAmount" class="amount">0 F CFA</div>
-            </div>
-            
-            <div class="card stat">
-                <div class="label">Dépensé aujourd'hui</div>
-                <div id="todayAmount" class="amount">0 F CFA</div>
-            </div>
-            
-            <div class="card stat">
-                <div class="label">Cette semaine</div>
-                <div id="weekAmount" class="amount">0 F CFA</div>
-            </div>
-            
-            <div class="card stat">
-                <div class="label">Ce mois-ci</div>
-                <div id="monthAmount" class="amount">0 F CFA</div>
-            </div>
+            <section class="grille">
 
-                <div class="card chart-card">
-                    <div class="card-title">Répartition par catégorie</div>
-                    <canvas id="doughnutChart" width="400" height="300"></canvas>
+                <div class="carte stat">
+                    <div class="label">Solde disponible</div>
+                    <div id="solde" class="montant">0 F CFA</div>
                 </div>
 
-                <div class="card recent">
-                    <div class="card-title">Dépenses récentes</div>
-                    <table class="table" id="recentTable">
+                <div class="carte stat">
+                    <div class="label">Dépensé aujourd'hui</div>
+                    <div id="montant-jour" class="montant">0 F CFA</div>
+                </div>
+
+                <div class="carte stat">
+                    <div class="label">Cette semaine</div>
+                    <div id="montant-semaine" class="montant">0 F CFA</div>
+                </div>
+
+                <div class="carte stat">
+                    <div class="label">Ce mois-ci</div>
+                    <div id="montant-mois" class="montant">0 F CFA</div>
+                </div>
+
+                <div class="carte carte-graphique">
+                    <div class="titre">Répartition par catégorie</div>
+                    <canvas id="graphique"></canvas>
+                </div>
+
+                <div class="carte recentes">
+                    <div class="titre">Dépenses récentes</div>
+                    <table class="table" id="table-recentes">
                         <thead>
                             <tr>
                                 <th>Article</th>
@@ -91,31 +92,38 @@
                     </table>
                 </div>
 
-                <div class="card budget">
-                    <div class="card-title">Budget mensuel</div>
-                    <div class="progress-bar">
-                        <div id="progressFill" class="fill" style="width:0%"></div>
+                <div class="carte budget">
+                    <div class="titre">Budget mensuel</div>
+
+                    <div class="barre">
+                        <div id="remplissage" class="remplir" style="width:0%"></div>
                     </div>
-                    <div class="budget-info"><span id="spentText">0FCFA</span> de <span id="budgetText">1000€</span></div>
+
+                    <div class="info-budget">
+                        <span id="texte-depense">0 FCFA</span> de
+                        <span id="texte-budget">1000 FCFA</span>
+                    </div>
                 </div>
+
             </section>
         </main>
     </div>
 
-    <!-- Modal Add Expense -->
-    <div id="modal" class="modal hidden">
-        <div class="modal-content">
-            <button id="closeAdd" class="modal-close">&times;</button>
+    <div id="fenetre" class="fenetre cache">
+        <div class="fenetre-contenu">
+            <button id="fermer-ajout" class="btn-fermer">&times;</button>
             <h2>Ajouter une nouvelle dépense</h2>
 
-            <form id="expenseForm">
-                <div class="form-row">
+            <form id="form-depense">
+
+                <div class="ligne-form">
                     <label>Montant (FCFA) *</label>
-                    <input id="amount" type="number" step="0.01" min="0.01" placeholder="0.00" required />
+                    <input id="champ-montant" type="number" step="0.01" min="0.01" required>
                 </div>
-                <div class="form-row">
+
+                <div class="ligne-form">
                     <label>Catégorie *</label>
-                    <select id="category" required>
+                    <select id="champ-categorie" required>
                         <option value="">Sélectionner</option>
                         <option value="Alimentation">Alimentation</option>
                         <option value="Transport">Transport</option>
@@ -125,19 +133,19 @@
                     </select>
                 </div>
 
-                <div class="form-row">
+                <div class="ligne-form">
                     <label>Date</label>
-                    <input id="date" type="date" />
+                    <input id="champ-date" type="date">
                 </div>
 
-                <div class="form-row">
+                <div class="ligne-form">
                     <label>Description (optionnelle)</label>
-                    <textarea id="description" rows="3" placeholder="Ajouter une courte description..."></textarea>
+                    <textarea id="champ-description" rows="3"></textarea>
                 </div>
 
-                <div class="form-actions">
-                    <button type="submit" class="btn primary">Ajouter dépense</button>
-                    <button id="cancel" type="button" class="btn">Annuler</button>
+                <div class="actions-form">
+                    <button type="submit" class="btn-principal">Ajouter dépense</button>
+                    <button id="annuler" type="button" class="btn-secondaire">Annuler</button>
                 </div>
             </form>
         </div>

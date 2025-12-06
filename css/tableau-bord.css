@@ -1,17 +1,16 @@
-/* Overrides & refinements pour le dashboard */
-.chart-card {
+.carte-graphique {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    height: 320px
+    height: 320px;
 }
 
-.recent {
+.recentes {
     max-height: 320px;
-    overflow: auto
+    overflow: auto;
 }
 
 .table tbody tr:hover {
-    background: rgba(255, 255, 255, 0.01)
+    background: rgba(255, 255, 255, 0.01);
 }

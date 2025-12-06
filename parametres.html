@@ -4,61 +4,63 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Paramètres – Budget</title>
+    <title>Paramètres</title>
 
     <link rel="stylesheet" href="css/global.css">
     <link rel="stylesheet" href="css/parametres.css">
 </head>
 
 <body>
+
     <div class="app">
 
-        <!-- SIDEBAR -->
-        <aside class="sidebar">
-            <div class="brand">
+        <aside class="menu">
+
+            <div class="marque">
                 <img src="assets/logo.png" class="logo">
                 <span>StudMoney</span>
             </div>
 
-            <nav class="nav">
-                <a class="nav-item" href="index.html">Dashboard</a>
-                <a class="nav-item" href="depenses.html">Dépenses</a>
-                <a class="nav-item" href="historique.html">Historique</a>
-                <a class="nav-item active" href="parametres.html">Paramètres</a>
+            <nav class="navigation">
+                <a class="item-menu" href="index.html">Tableau de bord</a>
+                <a class="item-menu" href="depenses.html">Dépenses</a>
+                <a class="item-menu" href="historique.html">Historique</a>
+                <a class="item-menu actif" href="parametres.html">Paramètres</a>
             </nav>
 
-            <div class="side-bottom">
-                <div class="user">
+            <div class="bloc-bas">
+                <div class="utilisateur">
                     <img src="assets/utilisateur.png">
                     <div>
-                        <div class="name">Choumad</div>
-                        <div class="email">choumad@etudiant.edu</div>
+                        <div class="nom">Choumad</div>
+                        <div class="email">choumad@ugb.edu.sn</div>
                     </div>
                 </div>
             </div>
+
         </aside>
 
-        <!-- MAIN -->
-        <main class="main">
+        <main class="contenu">
 
-            <header class="page-header">
+            <header class="entete-page">
                 <h1>Paramètres</h1>
-                <p>Gérez votre budget et vos alertes.</p>
+                <p>Modifier votre budget et alertes.</p>
             </header>
 
-            <div class="param-card">
+            <div class="carte-param">
 
                 <label>Budget mensuel (FCFA)</label>
-                <input type="number" id="budgetAmount" min="1000">
+                <input type="number" id="champ-budget" min="1000">
 
                 <label>Seuil d'alerte (%)</label>
-                <input type="range" id="threshold" min="50" max="100">
+                <input type="range" id="champ-seuil" min="50" max="100">
 
-                <div class="range-value">
-                    <span id="thresholdValue"></span> %
+                <div class="valeur-range">
+                    <span id="valeur-seuil"></span> %
                 </div>
 
-                <button id="saveBtn" class="btn-save">Enregistrer</button>
+                <button id="btn-enregistrer" class="btn-enregistrer">Enregistrer</button>
+
             </div>
 
         </main>

@@ -1,179 +1,232 @@
-if (localStorage.getItem("loggedIn") !== "true") {
-   window.location = "connexion.html";
+if (localStorage.getItem("connecte") !== "true") {
+  window.location = "connexion.html";
 }
 
-// tableau-bord.js — logique du dashboard + modal + chart
-document.addEventListener('DOMContentLoaded', () => {
-  ensureSeed();
-  initUI();
-  updateDashboard();
+if (typeof formatCurrency === "undefined") {
+  function formatCurrency(n){
+    return new Intl.NumberFormat('fr-FR', {
+      style:'currency',
+      currency:'XOF',
+      maximumFractionDigits:0
+    }).format(n || 0);
+  }
+}
+
+if (typeof escapeHtml === "undefined") {
+  function escapeHtml(str){
+    return String(str||'').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#039;"}[m]));
+  }
+}
+
+if (typeof dateLisible === "undefined") {
+  function dateLisible(iso){
+    return new Date(iso).toLocaleDateString();
+  }
+}
+
+function lireBudgetUnified() {
+  return JSON.parse(localStorage.getItem("donnees_budget"))
+      || JSON.parse(localStorage.getItem("gb_budget_v1"))
+      || { montant: 1000, seuil: 85 };
+}
+
+
+let graphique = null;
+
+document.addEventListener("DOMContentLoaded", () => {
+  if (typeof initialiserDonnees === "function") initialiserDonnees();
+  initialiserInterface();
+  mettreAJourTableauBord();
 });
 
-let chartInstance = null;
+function initialiserInterface(){
+  const fenetre = document.getElementById("fenetre");
+  const ouvrir = document.getElementById("ouvrir-ajout");
+  const fermer = document.getElementById("fermer-ajout");
+  const annuler = document.getElementById("annuler");
+  const form = document.getElementById("form-depense");
 
-function initUI(){
-  // modal controls
-  const modal = document.getElementById('modal');
-  const open = document.getElementById('openAdd');
-  const close = document.getElementById('closeAdd');
-  const cancel = document.getElementById('cancel');
-  open.addEventListener('click', ()=> modal.classList.remove('hidden'));
-  close.addEventListener('click', ()=> modal.classList.add('hidden'));
-  cancel.addEventListener('click', ()=> modal.classList.add('hidden'));
+  if (ouvrir) ouvrir.addEventListener("click", () => fenetre.classList.remove("cache"));
+  if (fermer) fermer.addEventListener("click", () => fenetre.classList.add("cache"));
+  if (annuler) annuler.addEventListener("click", () => fenetre.classList.add("cache"));
 
-  // submit form
-  const form = document.getElementById('expenseForm');
-  form.addEventListener('submit', (e)=>{
-    e.preventDefault();
-    addExpenseFromForm();
-    form.reset();
-    modal.classList.add('hidden');
-  });
+  if (form) {
+    form.addEventListener("submit", (e)=>{
+      e.preventDefault();
+      ajouterDepenseDepuisForm();
+      form.reset();
+      if (fenetre) fenetre.classList.add("cache");
+    });
+  }
 
-  // set default date today
-  const dateInput = document.getElementById('date');
-  dateInput.value = formatDateISO(new Date());
+  const dateInput = document.getElementById("champ-date");
+  if (dateInput && !dateInput.value) dateInput.value = (typeof dateISO === "function") ? dateISO(new Date()) : new Date().toISOString().slice(0,10);
 }
 
-function addExpenseFromForm(){
-  const amount = parseFloat(document.getElementById('amount').value);
-  const category = document.getElementById('category').value;
-  const date = document.getElementById('date').value || formatDateISO(new Date());
-  const desc = document.getElementById('description').value || '';
-  if(!amount || !category){
-    alert('Veuillez renseigner le montant et la catégorie.');
+function ajouterDepenseDepuisForm(){
+  const montantEl = document.getElementById("champ-montant");
+  const categorieEl = document.getElementById("champ-categorie");
+  const dateEl = document.getElementById("champ-date");
+  const descEl = document.getElementById("champ-description");
+
+  const montant = parseFloat(montantEl ? montantEl.value : 0);
+  const categorie = categorieEl ? categorieEl.value : "";
+  const dateVal = (dateEl && dateEl.value) ? dateEl.value : ((typeof dateISO === "function") ? dateISO(new Date()) : new Date().toISOString().slice(0,10));
+  const desc = descEl ? descEl.value : "";
+
+  if (!montant || !categorie) {
+    alert("Veuillez renseigner le montant et la catégorie.");
     return;
   }
-  const newExp = {
-    id: cryptoRandomId(),
-    title: desc || category,
-    category,
-    date,
-    amount: Math.round(amount*100)/100,
-    desc
+
+  const nouvelle = {
+    id: (typeof idAleatoire === "function") ? idAleatoire() : Math.random().toString(36).slice(2,9),
+    titre: desc || categorie,
+    categorie,
+    date: dateVal,
+    montant: Math.round(montant*100)/100,
+    description: desc
   };
-  const list = readExpenses() || [];
-  list.unshift(newExp);
-  saveExpenses(list);
-  updateDashboard();
+
+  const liste = (typeof lireDepenses === "function") ? (lireDepenses() || []) : [];
+  liste.unshift(nouvelle);
+
+  if (typeof enregistrerDepenses === "function") {
+    enregistrerDepenses(liste);
+  } else {
+    localStorage.setItem("donnees_depenses", JSON.stringify(liste));
+  }
+
+  mettreAJourTableauBord();
 }
 
-// calc totals and update UI
-function updateDashboard(){
-  const list = readExpenses() || [];
-  // totals
-  const today = new Date(); today.setHours(0,0,0,0);
-  const startOfWeek = new Date(today); startOfWeek.setDate(today.getDate() - (today.getDay()||7) + 1); // lundi
-  const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+function mettreAJourTableauBord(){
+  const liste = (typeof lireDepenses === "function") ? (lireDepenses() || []) : JSON.parse(localStorage.getItem("donnees_depenses") || "[]");
 
-  let todaySum=0, weekSum=0, monthSum=0;
-  const catMap = {};
-  CATEGORIES.forEach(c => catMap[c]=0);
+  const aujourdHui = new Date(); aujourdHui.setHours(0,0,0,0);
+  const debutSemaine = new Date(aujourdHui); debutSemaine.setDate(aujourdHui.getDate() - (aujourdHui.getDay() || 7) + 1);
+  const debutMois = new Date(aujourdHui.getFullYear(), aujourdHui.getMonth(), 1);
 
-  list.forEach(item=>{
+  let totalJour = 0, totalSemaine = 0, totalMois = 0;
+  const parCategorie = {};
+  if (Array.isArray(window.CATEGORIES)) {
+    window.CATEGORIES.forEach(c => parCategorie[c] = 0);
+  }
+
+  liste.forEach(item => {
     const d = new Date(item.date);
     d.setHours(0,0,0,0);
-    if(+d === +today) todaySum += item.amount;
-    if(d >= startOfWeek && d <= today) weekSum += item.amount;
-    if(d >= startOfMonth && d <= today) monthSum += item.amount;
-    if(catMap[item.category] !== undefined) catMap[item.category] += item.amount;
-    else catMap['Autre'] = (catMap['Autre']||0) + item.amount;
+    if (+d === +aujourdHui) totalJour += (item.montant || 0);
+    if (d >= debutSemaine && d <= aujourdHui) totalSemaine += (item.montant || 0);
+    if (d >= debutMois && d <= aujourdHui) totalMois += (item.montant || 0);
+
+    if (parCategorie[item.categorie] !== undefined) parCategorie[item.categorie] += (item.montant || 0);
+    else parCategorie[item.categorie] = (parCategorie[item.categorie] || 0) + (item.montant || 0);
   });
 
-  document.getElementById('todayAmount').textContent = formatCurrency(todaySum);
-  document.getElementById('weekAmount').textContent = formatCurrency(weekSum);
-  document.getElementById('monthAmount').textContent = formatCurrency(monthSum);
+  const elSolde = document.getElementById("solde");
+  const elJour = document.getElementById("montant-jour");
+  const elSemaine = document.getElementById("montant-semaine");
+  const elMois = document.getElementById("montant-mois");
 
-  // recent table (last 6)
-  renderRecent(list.slice(0,6));
+  if (elSolde || elJour || elSemaine || elMois) {
+    const budget = lireBudgetUnified();
+    const montantBudget = Number(budget.montant ?? budget.amount ?? 0);
+    const seuil = budget.seuil || budget.threshold || 85;
 
-  // chart
-  renderChart(catMap);
+    const depensesMois = totalMois;
+    const solde = montantBudget - depensesMois;
 
-  // budget progress
-  const budget = readBudget();
-  const spent = monthSum;
-  const balance = budget.amount - spent;
-  document.getElementById('balanceAmount').textContent = formatCurrency(balance);
-  const pct = Math.min(100, Math.round((spent / (budget.amount || 1)) * 100));
-  document.getElementById('progressFill').style.width = pct + '%';
-  document.getElementById('spentText').textContent = formatCurrency(spent);
-  document.getElementById('budgetText').textContent = formatCurrency(budget.amount);
+    if (elSolde) elSolde.textContent = formatCurrency(solde);
+    if (elJour) elJour.textContent = formatCurrency(totalJour);
+    if (elSemaine) elSemaine.textContent = formatCurrency(totalSemaine);
+    if (elMois) elMois.textContent = formatCurrency(totalMois);
 
-  // alert if over threshold
-  const threshold = budget.threshold || 85;
-  if(pct >= threshold){
-    // simple notification (peut être améliorée)
-    if(Notification && Notification.permission === "granted"){
-      new Notification("Alerte budget", { body:`Vous avez atteint ${pct}% de votre budget mensuel.` });
-    } else {
-      // petit badge visuel (ici alert simple)
-      console.warn(`Alerte: ${pct}% du budget utilisé`);
+    const pct = Math.min(100, Math.round((depensesMois / (montantBudget || 1)) * 100));
+    const elRemplissage = document.getElementById("remplissage");
+    if (elRemplissage) elRemplissage.style.width = pct + "%";
+
+    const elTexteDepense = document.getElementById("texte-depense");
+    const elTexteBudget = document.getElementById("texte-budget");
+    if (elTexteDepense) elTexteDepense.textContent = formatCurrency(depensesMois);
+    if (elTexteBudget) elTexteBudget.textContent = formatCurrency(montantBudget);
+
+    if (pct >= seuil) {
+      if ("Notification" in window && Notification.permission === "granted") {
+        new Notification("Alerte budget", { body: `Vous avez atteint ${pct}% de votre budget mensuel.` });
+      } else {
+        console.warn(`Alerte budget : ${pct}% utilisé.`);
+      }
     }
   }
+
+  afficherRecents(liste.slice(0,6));
+
+  afficherGraphique(parCategorie);
 }
 
-function renderRecent(items){
-  const tbody = document.querySelector('#recentTable tbody');
-  tbody.innerHTML = '';
+function afficherRecents(items){
+  const tbody = document.querySelector("#table-recentes tbody");
+  if (!tbody) return;
+  tbody.innerHTML = "";
   items.forEach(it=>{
-    const tr = document.createElement('tr');
-    tr.innerHTML = `<td>${escapeHtml(it.title)}</td>
-      <td>${escapeHtml(it.category)}</td>
-      <td>${formatDisplayDate(it.date)}</td>
-      <td>${formatCurrency(it.amount)}</td>`;
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${escapeHtml(it.titre)}</td>
+      <td>${escapeHtml(it.categorie)}</td>
+      <td>${dateLisible(it.date)}</td>
+      <td>${formatCurrency(it.montant)}</td>
+    `;
     tbody.appendChild(tr);
   });
 }
 
+function obtenirCouleurCategorie(categorie) {
+  const couleurs = {
+    'Alimentation': '#2ecc71',
+    'Transport': '#1abc9c',
+    'Logement': '#3498db',
+    'Loisirs': '#9b59b6',
+    'Autre': '#e67e22'
+  };
+  return couleurs[categorie] || '#95a5a6';
+}
 
+function afficherGraphique(parCategorie){
+  const canvas = document.getElementById("graphique");
+  if (!canvas) return;
+  const ctx = canvas.getContext("2d");
 
-function renderChart(catMap){
-  const ctx = document.getElementById('doughnutChart').getContext('2d');
-  const labels = Object.keys(catMap);
-  const data = labels.map(l => Math.round((catMap[l]||0) * 100) / 100);
-  if(chartInstance) chartInstance.destroy();
-  chartInstance = new Chart(ctx, {
+  const labels = Object.keys(parCategorie);
+  const data = labels.map(l => Math.round((parCategorie[l]||0) * 100) / 100);
+  
+  const backgroundColor = labels.map(label => obtenirCouleurCategorie(label));
+
+  if (graphique) graphique.destroy();
+
+  graphique = new Chart(ctx, {
     type: 'doughnut',
     data: {
       labels,
-      datasets:[{
-        label: 'Dépenses',
+      datasets: [{
         data,
-        backgroundColor: [
-          '#2ecc71','#27ae60','#1abc9c','#16a085','#95a5a6'
-        ],
-        hoverOffset: 8,
+        backgroundColor: backgroundColor,
+        hoverOffset: 10,
         borderWidth: 0
       }]
     },
     options:{
-      responsive:true,
+      responsive: true,
       plugins:{
-        legend:{position:'bottom',labels:{color:'#cfead6'}},
-        tooltip:{bodyColor:'#fff',titleColor:'#fff',backgroundColor:'#0b2419'}
+        legend:{ position: 'bottom', labels: { color: '#cfead6' } },
+        tooltip: { bodyColor:'#fff', titleColor:'#fff', backgroundColor:'#0b2419' }
       },
       cutout: '65%'
     }
   });
 }
 
-function formatCurrency(n){
-  return new Intl.NumberFormat('fr-FR', {
-    style:'currency',
-    currency:'XOF',
-    maximumFractionDigits:0
-  }).format(n);
-}
-
-
-function escapeHtml(str){
-  return String(str||'').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#039;"}[m]));
-}
-
-// ask notification permission once
-if("Notification" in window){
-  if(Notification.permission === "default"){
-    Notification.requestPermission().then(()=>{/* noop */});
-  }
-}
+document.querySelector(".deconnexion")?.addEventListener("click", () => {
+    localStorage.removeItem("connecte");
+    window.location = "connexion.html";
+});

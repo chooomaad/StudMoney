@@ -1,5 +1,5 @@
-.param-card {
-    background: var(--card);
+.carte-param {
+    background: var(--carte-fond);
     padding: 30px;
     border-radius: 14px;
     border: 1px solid rgba(255, 255, 255, 0.06);
@@ -10,7 +10,7 @@ label {
     display: block;
     margin-top: 20px;
     margin-bottom: 6px;
-    color: var(--muted);
+    color: var(--texte-clair);
 }
 
 input[type=number],
@@ -23,14 +23,14 @@ input[type=range] {
     color: #fff;
 }
 
-.range-value {
+.valeur-range {
     margin-top: 4px;
     font-size: 18px;
     color: var(--accent);
     font-weight: bold;
 }
 
-.btn-save {
+.btn-enregistrer {
     margin-top: 20px;
     width: 100%;
     padding: 14px;

@@ -3,25 +3,80 @@
 
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Inscription - StudMoney</title>
     <link rel="stylesheet" href="css/auth.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 
 <body>
 
     <div class="auth-container">
-        <div class="auth-box">
-            <h1>Créer un compte</h1>
+        <div class="auth-bg"></div>
 
-            <form id="registerForm">
-                <input type="text" id="name" placeholder="Votre nom" required>
-                <input type="email" id="email" placeholder="Adresse email" required>
-                <input type="password" id="password" placeholder="Mot de passe" required>
+        <div class="auth-content">
+            <div class="auth-card">
+                <div class="auth-logo">
+                    <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="24" cy="24" r="22" fill="none" stroke="#00ff88" stroke-width="2"/>
+                        <g>
+                            <path d="M20 24H28" stroke="#00ff88" stroke-width="2.5" stroke-linecap="round"/>
+                            <path d="M24 20V28" stroke="#00ff88" stroke-width="2.5" stroke-linecap="round"/>
+                        </g>
+                    </svg>
+                </div>
 
-                <button class="btn">Créer un compte</button>
+                <h1 class="auth-title">Créer un compte</h1>
+                <form id="form-inscription" class="auth-form">
+                    <div class="form-group">
+                        <input 
+                            type="text" 
+                            id="champ-nom" 
+                            class="auth-input"
+                            placeholder="Votre nom complet" 
+                            required
+                            autocomplete="name"
+                        >
+                        <span class="input-focus"></span>
+                    </div>
 
-                <p class="link">Déjà un compte ? <a href="connexion.html">Connexion</a></p>
-            </form>
+                    <div class="form-group">
+                        <input 
+                            type="email" 
+                            id="champ-email" 
+                            class="auth-input"
+                            placeholder="Adresse email" 
+                            required
+                            autocomplete="email"
+                        >
+                        <span class="input-focus"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <input 
+                            type="password" 
+                            id="champ-mdp" 
+                            class="auth-input"
+                            placeholder="Mot de passe sécurisé" 
+                            required
+                            autocomplete="new-password"
+                        >
+                        <span class="input-focus"></span>
+                    </div>
+
+                    <button type="submit" class="auth-btn">
+                        <span class="btn-text">Créer mon compte</span>
+                        <span class="btn-icon">→</span>
+                    </button>
+                </form>
+
+                <p class="auth-link">
+                    Déjà un compte ? 
+                    <a href="connexion.html">Connexion</a>
+                </p>
+
+            </div>
+
         </div>
     </div>
 
