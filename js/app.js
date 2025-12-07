@@ -1,64 +1,59 @@
+function obtenirCleUtilisateur(email) {
+    return `utilisateur_${email}`;
+}
+
+function obtenirUtilisateurConnecte() {
+    const emailConnecte = localStorage.getItem("utilisateurActif");
+    if (!emailConnecte) return null;
+    
+    const cle = obtenirCleUtilisateur(emailConnecte);
+    const data = localStorage.getItem(cle);
+    return data ? JSON.parse(data) : null;
+}
+
+function enregistrerUtilisateur(utilisateur) {
+    if (!utilisateur || !utilisateur.email) return;
+    
+    const cle = obtenirCleUtilisateur(utilisateur.email);
+    localStorage.setItem(cle, JSON.stringify(utilisateur));
+}
+
+function lireDepenses() {
+    const user = obtenirUtilisateurConnecte();
+    return user && user.depenses ? user.depenses : [];
+}
+
+function enregistrerDepenses(liste) {
+    const user = obtenirUtilisateurConnecte();
+    if (!user) return;
+    
+    user.depenses = liste;
+    enregistrerUtilisateur(user);
+}
+
+function lireBudget() {
+    const user = obtenirUtilisateurConnecte();
+    if (!user || !user.budget) {
+        return { montant: 0, seuil: 85 };
+    }
+    return user.budget;
+}
+
+function enregistrerBudget(budget) {
+    const user = obtenirUtilisateurConnecte();
+    if (!user) return;
+    
+    user.budget = budget;
+    enregistrerUtilisateur(user);
+}
+
 const CLE_DEPENSES = "donnees_depenses";
 const CLE_BUDGET = "donnees_budget";
 
 const CATEGORIES = ["Alimentation", "Transport", "Logement", "Loisirs", "Autre"];
 
-
-function lireDepenses() {
-    const brut = localStorage.getItem(CLE_DEPENSES);
-    return brut ? JSON.parse(brut) : null;
-}
-
-function enregistrerDepenses(liste) {
-    localStorage.setItem(CLE_DEPENSES, JSON.stringify(liste));
-}
-
-function lireBudget() {
-    const brut = localStorage.getItem(CLE_BUDGET);
-    return brut ? JSON.parse(brut) : { montant: 50000, seuil: 85 };
-}
-
-function enregistrerBudget(budget) {
-    localStorage.setItem(CLE_BUDGET, JSON.stringify(budget));
-}
-
 function initialiserDonnees(){
-    if (!lireDepenses()) {
-        const maintenant = new Date();
-
-        const exemples = [
-            {
-                id: idAleatoire(),
-                titre: "Café",
-                categorie: "Alimentation",
-                date: dateISO(maintenant),
-                montant: 500,
-                description: "Café campus"
-            },
-            {
-                id: idAleatoire(),
-                titre: "Bus",
-                categorie: "Transport",
-                date: dateISO(maintenant),
-                montant: 300,
-                description: "Trajet retour"
-            },
-            {
-                id: idAleatoire(),
-                titre: "Livre",
-                categorie: "Autre",
-                date: dateISO(ajouterJours(maintenant, -1)),
-                montant: 4500,
-                description: "Manuel de cours"
-            }
-        ];
-
-        enregistrerDepenses(exemples);
-    }
-
-    if (!localStorage.getItem(CLE_BUDGET)) {
-        enregistrerBudget({ montant: 1000, seuil: 85 });
-    }
+    return;
 }
 
 function idAleatoire() {

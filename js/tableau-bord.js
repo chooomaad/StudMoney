@@ -2,6 +2,53 @@ if (localStorage.getItem("connecte") !== "true") {
   window.location = "connexion.html";
 }
 
+// Demande de permission de notifications au chargement si disponible
+if ("Notification" in window) {
+  try {
+    if (Notification.permission === 'default') {
+      Notification.requestPermission().then(() => {});
+    }
+  } catch (e) {
+    console.warn('Notification API non disponible :', e);
+  }
+}
+
+function obtenirCleUtilisateur(email) {
+  return `utilisateur_${email}`;
+}
+
+function obtenirUtilisateurConnecte() {
+  const emailConnecte = localStorage.getItem("utilisateurActif");
+  if (!emailConnecte) return null;
+    
+  const cle = obtenirCleUtilisateur(emailConnecte);
+  const data = localStorage.getItem(cle);
+  return data ? JSON.parse(data) : null;
+}
+
+function enregistrerUtilisateur(utilisateur) {
+  if (!utilisateur || !utilisateur.email) return;
+    
+  const cle = obtenirCleUtilisateur(utilisateur.email);
+  localStorage.setItem(cle, JSON.stringify(utilisateur));
+}
+
+function mettreAJourNomUtilisateur() {
+  const user = obtenirUtilisateurConnecte();
+  if (!user) return;
+    
+  const elemNom = document.querySelector(".entete h1");
+  if (elemNom) {
+    elemNom.textContent = `Bienvenue, ${user.nom} !`;
+  }
+    
+  const elemMenuNom = document.querySelector(".nom");
+  const elemMenuEmail = document.querySelector(".email");
+    
+  if (elemMenuNom) elemMenuNom.textContent = user.nom;
+  if (elemMenuEmail) elemMenuEmail.textContent = user.email;
+}
+
 if (typeof formatCurrency === "undefined") {
   function formatCurrency(n){
     return new Intl.NumberFormat('fr-FR', {
@@ -35,6 +82,7 @@ let graphique = null;
 
 document.addEventListener("DOMContentLoaded", () => {
   if (typeof initialiserDonnees === "function") initialiserDonnees();
+  mettreAJourNomUtilisateur();
   initialiserInterface();
   mettreAJourTableauBord();
 });
@@ -130,7 +178,7 @@ function mettreAJourTableauBord(){
   const elMois = document.getElementById("montant-mois");
 
   if (elSolde || elJour || elSemaine || elMois) {
-    const budget = lireBudgetUnified();
+    const budget = (typeof lireBudget === 'function') ? lireBudget() : (lireBudgetUnified ? lireBudgetUnified() : { montant: 0, seuil: 85 });
     const montantBudget = Number(budget.montant ?? budget.amount ?? 0);
     const seuil = budget.seuil || budget.threshold || 85;
 
@@ -152,10 +200,28 @@ function mettreAJourTableauBord(){
     if (elTexteBudget) elTexteBudget.textContent = formatCurrency(montantBudget);
 
     if (pct >= seuil) {
-      if ("Notification" in window && Notification.permission === "granted") {
-        new Notification("Alerte budget", { body: `Vous avez atteint ${pct}% de votre budget mensuel.` });
+      const title = '⚠️ Alerte Budget';
+      const message = `Vous avez dépassé ${pct}% de votre budget mensuel.`;
+      const icon = 'assets/logo.png';
+
+      if ("Notification" in window) {
+        if (Notification.permission === 'granted') {
+          new Notification(title, { body: message, icon });
+        } else if (Notification.permission === 'default') {
+          Notification.requestPermission().then(permission => {
+            if (permission === 'granted') {
+              new Notification(title, { body: message, icon });
+            } else {
+              alert(message);
+            }
+          }).catch(() => {
+            alert(message);
+          });
+        } else {
+          alert(message);
+        }
       } else {
-        console.warn(`Alerte budget : ${pct}% utilisé.`);
+        alert(message);
       }
     }
   }
@@ -227,6 +293,7 @@ function afficherGraphique(parCategorie){
 }
 
 document.querySelector(".deconnexion")?.addEventListener("click", () => {
-    localStorage.removeItem("connecte");
-    window.location = "connexion.html";
+  localStorage.removeItem("connecte");
+  localStorage.removeItem("utilisateurActif");
+  window.location = "connexion.html";
 });

@@ -32,8 +32,8 @@
                 <div class="utilisateur">
                     <img src="assets/utilisateur.png">
                     <div>
-                        <div class="nom">Choumad</div>
-                        <div class="email">choumad@ugb.edu.sn</div>
+                        <div class="nom">--</div>
+                        <div class="email">--</div>
                     </div>
                 </div>
 
@@ -80,7 +80,6 @@
                             <th>Catégorie</th>
                             <th>Description</th>
                             <th>Montant</th>
-                            <th>Actions</th>
                         </tr>
                     </thead>
 
@@ -96,6 +95,31 @@
 
     <script src="js/app.js"></script>
     <script src="js/historique.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            function obtenirCleUtilisateur(email) {
+                return `utilisateur_${email}`;
+            }
+
+            function obtenirUtilisateurConnecte() {
+                const emailConnecte = localStorage.getItem("utilisateurActif");
+                if (!emailConnecte) return null;
+                
+                const cle = obtenirCleUtilisateur(emailConnecte);
+                const data = localStorage.getItem(cle);
+                return data ? JSON.parse(data) : null;
+            }
+
+            const user = obtenirUtilisateurConnecte();
+            if (user) {
+                const elemNom = document.querySelector(".nom");
+                const elemEmail = document.querySelector(".email");
+                
+                if (elemNom) elemNom.textContent = user.nom;
+                if (elemEmail) elemEmail.textContent = user.email;
+            }
+        });
+    </script>
 </body>
 
 </html>
